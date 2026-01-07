@@ -1,6 +1,7 @@
 package com.dev.pontoeletronicoapi.controller;
 
 
+import com.dev.pontoeletronicoapi.config.TokenConfig;
 import com.dev.pontoeletronicoapi.dto.login.LoginRequest;
 import com.dev.pontoeletronicoapi.dto.login.LoginResponse;
 import com.dev.pontoeletronicoapi.dto.usuario.UsuarioCreateDTO;
@@ -13,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,19 +26,25 @@ public class AuthController {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final TokenConfig tokenConfig
 
-    public AuthController(UsuarioRepository usuarioRepository,  PasswordEncoder passwordEncoder,  AuthenticationManager authenticationManager) {
+    public AuthController(UsuarioRepository usuarioRepository,  PasswordEncoder passwordEncoder,
+                          AuthenticationManager authenticationManager, TokenConfig tokenConfig) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.tokenConfig = tokenConfig;
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         UsernamePasswordAuthenticationToken usuarioAndSenha = new UsernamePasswordAuthenticationToken(loginRequest.cpf(), loginRequest.senha());
         Authentication authentication = authenticationManager.authenticate(usuarioAndSenha);
-        return null;
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        String token = tokenConfig.generateToken(usuario);
+
+        return ResponseEntity.ok(new LoginResponse(token));
 
     }
 
