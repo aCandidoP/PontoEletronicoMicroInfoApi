@@ -27,7 +27,7 @@ public class AuthController {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final TokenConfig tokenConfig
+    private final TokenConfig tokenConfig;
 
     public AuthController(UsuarioRepository usuarioRepository,  PasswordEncoder passwordEncoder,
                           AuthenticationManager authenticationManager, TokenConfig tokenConfig) {
