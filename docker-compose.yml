@@ -1,35 +1,39 @@
-version: '3.8'
-
 services:
 
   db-postgres:
     image: postgres:15
-    container_name: rephub-postgres-db
+    container_name: microinformatica-postgres-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: '${DB_DATABASE}'
-      POSTGRES_USER: '${DB_USER}'
-      POSTGRES_PASSWORD: '${DB_PASSWORD}'
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_DATABASE}"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 30
 
   app:
     build: .
     container_name: ponto-eletronico-app
     restart: unless-stopped
     depends_on:
-      - db-postgres
+      db-postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-postgres:5432/${DB_DATABASE}
-      SPRING_DATASOURCE_USERNAME: '${DB_USER}'
-      SPRING_DATASOURCE_PASSWORD: '${DB_PASSWORD}'
-      APPLICATION_SECURITY_JWT_SECRET-KEY: '${JWT_SECRET_KEY}'
-      APPLICATION_SECURITY_JWT_EXPIRATION-MS: '${JWT_EXPIRATION_MS}'
-
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      APPLICATION_SECURITY_JWT_SECRET-KEY: ${JWT_SECRET_KEY}
+      APPLICATION_SECURITY_JWT_EXPIRATION-MS: ${JWT_EXPIRATION_MS}
 
 volumes:
   db-data:

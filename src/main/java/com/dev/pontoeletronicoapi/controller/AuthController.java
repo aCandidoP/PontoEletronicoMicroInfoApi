@@ -6,11 +6,13 @@ import com.dev.pontoeletronicoapi.dto.login.LoginRequest;
 import com.dev.pontoeletronicoapi.dto.login.LoginResponse;
 import com.dev.pontoeletronicoapi.dto.usuario.UsuarioCreateDTO;
 import com.dev.pontoeletronicoapi.dto.usuario.UsuarioViewDTO;
+import com.dev.pontoeletronicoapi.model.Role;
 import com.dev.pontoeletronicoapi.model.Usuario;
 import com.dev.pontoeletronicoapi.repository.UsuarioRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -48,16 +50,18 @@ public class AuthController {
 
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/registrar")
     public ResponseEntity<UsuarioViewDTO> register(@Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO) {
         Usuario novoUsuario = new Usuario();
         novoUsuario.setCpf(usuarioCreateDTO.cpf());
         novoUsuario.setSenha(passwordEncoder.encode(usuarioCreateDTO.senha()));
         novoUsuario.setNome(usuarioCreateDTO.nome());
+        novoUsuario.setRole(Role.USER);
         Usuario  usuario = usuarioRepository.save(novoUsuario);
 
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new UsuarioViewDTO(usuario.getId(), usuario.getNome(), usuario.getCpf()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new UsuarioViewDTO(usuario.getId(), usuario.getNome(), usuario.getCpf(), usuario.getRole()));
     }
 
 }
